@@ -1,0 +1,5 @@
+1. Edit settings.jl if necessary
+2. > julia nature.jl
+3. > julia init.jl
+4. > julia das.jl
+5. > julia plot.jl

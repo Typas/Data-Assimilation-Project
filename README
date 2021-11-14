@@ -3,3 +3,24 @@
 3. > julia init.jl
 4. > julia das.jl
 5. > julia plot.jl
+
+# model
+Lorenz 96 model
+
+# DA schemes
+- OI
+- 3DVar
+- 4DVar
+
+# experiment
+## setup
+- 20 observation, average distributed
+## async observation
+- different observation station with different time
+- compare with sync observation
+## missing observation
+- randomly missing for a long time
+- randomly producing fake data for a long time
+### quality control filter
+- percentage of filtered error
+- percentage of discarded normal

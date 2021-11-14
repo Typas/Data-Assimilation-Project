@@ -5,11 +5,10 @@ Read:
   x_b.txt
   x_a.txt
 """
-"""
-import numpy as np
-from settings import *
-import matplotlib.pyplot as plt
 
+using Plots
+include("settings.jl")
+"""python
 # load data
 x_t_save = np.genfromtxt('x_t.txt')
 #x_b_save = np.genfromtxt('x_b.txt')

@@ -4,8 +4,8 @@ Save:
     x_t.txt
 """
 using DifferentialEquations: ode
-include("lorenz96.jl")
 include("settings.jl")
+include("lorenz96.jl")
 
 # settings of spin-up
 const σ_x0 = 0.1       # size of initial perturpation

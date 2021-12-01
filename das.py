@@ -6,12 +6,11 @@ Save:
   x_b.txt
   x_a.txt
 """
+import numpy as np
+from scipy.integrate import ode
+import lorenz96
+from settings import *
 
-using DifferentialEquations: ode
-include("settings.jl")
-include("lorenz96.jl")
-
-"""python
 # load initial condition
 x_a_init = np.genfromtxt('x_a_init.txt')
 #x_a_init = np.genfromtxt('x_t.txt')[0] + 1.e-4  # using nature run value plus a small error (for test purpose)
@@ -64,4 +63,3 @@ while tt <= nT:
 # save background and analysis data
 np.savetxt('x_b.txt', x_b_save)
 np.savetxt('x_a.txt', x_a_save)
-"""

@@ -5,10 +5,10 @@ Read:
   x_b.txt
   x_a.txt
 """
+import numpy as np
+from settings import *
+import matplotlib.pyplot as plt
 
-using Plots
-include("settings.jl")
-"""python
 # load data
 x_t_save = np.genfromtxt('x_t.txt')
 #x_b_save = np.genfromtxt('x_b.txt')
@@ -26,4 +26,3 @@ plt.title(r'Time series of $x_{' + str(pt) + '}$', size=20)
 plt.legend(loc='upper right', numpoints=1, prop={'size':18})
 plt.savefig('timeseries.png', dpi=200)
 plt.show()
-"""

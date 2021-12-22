@@ -20,6 +20,10 @@ solver.set_initial_value(x_t_0, 0.).set_f_params(F)
 solver.integrate(Tspinup)
 x_t_save = np.array([solver.y], dtype='f8')
 
+# setting of finer nature
+dT = dT/10
+nT = nT*10
+
 # create nature
 solver = ode(lorenz96.f).set_integrator('dopri5')
 solver.set_initial_value(x_t_save[0], 0.).set_f_params(F)

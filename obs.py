@@ -6,8 +6,6 @@ Save:
   y_o.txt
 """
 import numpy as np
-from scipy.integrate import ode
-import lorenz96
 from settings import *
 
 sd = 0.1

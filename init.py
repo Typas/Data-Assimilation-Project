@@ -9,7 +9,7 @@ import lorenz96
 from settings import *
 
 # settings of spin-up
-sigma_x0 = 0.1  # size of initial perturpation
+sigma_x0 = 0.2  # size of initial perturpation
 Tspinup = 100.  # initial spin-up time
 
 # spin-up from a random initail value
@@ -21,4 +21,4 @@ solver.integrate(Tspinup)
 x_a_init = np.array(solver.y, dtype='f8')
 
 # save the initial condition for DA experiment
-np.savetxt('x_a_init.txt', x_a_init)
+np.savetxt('x_a_init_{}.txt'.format(sigma_x0), x_a_init)

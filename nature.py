@@ -19,6 +19,7 @@ solver = ode(lorenz96.f).set_integrator('dopri5', nsteps=10000)
 solver.set_initial_value(x_t_0, 0.).set_f_params(F)
 solver.integrate(Tspinup)
 x_t_save = np.array([solver.y], dtype='f8')
+x_t_time = np.array([0.0], dtype='f8')
 
 # setting of finer nature
 dT = dT/10
@@ -31,9 +32,13 @@ solver.set_initial_value(x_t_save[0], 0.).set_f_params(F)
 tt = 1
 while solver.successful() and tt <= nT:
     solver.integrate(solver.t + dT)
-    x_t_save = np.vstack([x_t_save, [solver.y]])
-#    print('timestep =', tt, round(solver.t, 10))
+    step_y = np.array([solver.y], dtype='f8')
+    step_t = np.array([solver.t], dtype='f8')
+    x_t_save = np.vstack((x_t_save, step_y))
+    x_t_time = np.vstack((x_t_time, step_t))
+    # print('timestep =', tt, round(solver.t, 10))
     tt += 1
 
+x_t_save = np.hstack((x_t_time, x_t_save))
 # save data
 np.savetxt('x_t.txt', x_t_save)

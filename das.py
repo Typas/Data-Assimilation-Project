@@ -61,5 +61,5 @@ while tt <= nT:
     tt += 1
 
 # save background and analysis data
-np.savetxt('x_b.txt', x_b_save)
-np.savetxt('x_a.txt', x_a_save)
+np.savetxt('x_b_none.txt', x_b_save)
+np.savetxt('x_a_none.txt', x_a_save)

@@ -10,3 +10,8 @@ htmlcov
 
 *.txt
 __pycache__/
+
+
+# Added by cargo
+
+/target

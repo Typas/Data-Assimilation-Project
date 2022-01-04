@@ -8,7 +8,6 @@ tmp/
 build
 htmlcov
 
-*.txt
 __pycache__/
 
 

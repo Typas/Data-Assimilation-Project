@@ -92,7 +92,7 @@ fn raw_truth_sd(truth: &Truth) -> f64 {
 }
 
 fn full_process(truth: Truth, sd: f64) -> Truth {
-    let normal = Normal::new(0.0, sd * 0.1).unwrap();
+    let normal = Normal::new(0.0, sd * 0.05).unwrap();
     let mut rng = rand::thread_rng();
     let err_tmp: Vec<f64> = normal
         .sample_iter(&mut rng)

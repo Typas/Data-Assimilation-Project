@@ -43,11 +43,10 @@ for i in range(N):
     pass
 
 # initial background error covariance
-R = identity(N, dtype='f8')
-for i in range(N):
-    e = y_o_save[0] - x_a_save[0]
-    R[i, i] = e.dot(e.T)
-    pass
+mu = np.mean(y_o_save[0], 0)
+e = np.reshape(y_o_save[0] - mu, (N, 1))
+co = np.cov(e@e.T)
+R = np.diag(np.diagonal(co))
 B_init = R
 
 tt = 1
@@ -84,7 +83,7 @@ while tt <= nT:
     x_b = x_b_save[tt].transpose()
 
     # observation
-    y_o = y_o_save[tt].transpose()
+    y_o = np.nan_to_num(y_o_save[to].transpose())
 
     # innovation
 
@@ -93,11 +92,13 @@ while tt <= nT:
     # assume analysis as truth
     R = []
     for j in range(tos, to):
-        Rj = identity(N, dtype='f8')
-        for i in range(N):
-            e = np.nan_to_num(y_o_save[tts] - x_a_save[tts])
-            Rj[i, i] = e.dot(e.T)
-            pass
+        y_o = np.nan_to_num(y_o_save[j].transpose())
+        mu = np.mean(y_o, 0)
+        e = np.reshape(y_o - mu, (N, 1))
+        co = np.cov(e@e.T)
+        Rj = np.diag(np.diagonal(co))
+        if np.linalg.det(Rj) == 0.0:
+            raise ValueError('det = 0 when j = {}'.format(j))
         R.append(Rj)
         pass
 

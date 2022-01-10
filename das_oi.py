@@ -94,10 +94,10 @@ while tt <= nT:
     #--------------
 
     # background
-    x_b = x_b_save[tt].T
+    x_b = np.reshape(x_b_save[tt], (N, 1))
 
     # observation
-    y_o = y_o_save[tt].T
+    y_o = np.reshape(y_o_save[tt], (N, 1))
 
     # innovation
     y_b = H@x_b
@@ -109,12 +109,12 @@ while tt <= nT:
     e = np.reshape(y_o_save[tts] - mu, (N, 1))
     co = np.cov(e@e.T)
     R = np.diag(np.diagonal(co))
-    # B = R
     Rp = H@B@H.T + R
     K = B@H.T@inv(Rp)
-    x_a = x_b + np.reshape(K@d.T, np.shape(x_b))
+    x_a = x_b + K@d
 
-    x_a_save = np.vstack((x_a_save, x_a))
+
+    x_a_save = np.vstack((x_a_save, x_a.T))
     tt += 1
 
 # save background and analysis data

@@ -26,15 +26,14 @@ y_o_data = y_o_save[:, 2:end];
 x_a_save = fill(NaN, nT + 1, N)
 x_a_save[1, :] = x_a_init';
 
-# initial x_b: set to x_a_init at the initial time (assign NaN)
+# initial x_b: no values at the initial time (assign NaN)
 x_b_save = fill(NaN, nT + 1, N)
-x_b_save[1, :] = x_a_init';
 
 # initial background error variance
 σ = 0.2
 R = convert(Matrix, Diagonal(repeat([σ^2], N)));
 B_init = R
-# B_init = readdlm("data/b_nmc.txt");
+B_init = readdlm("data/b_nmc.txt");
 
 # observation operator
 function observation_operators(y_o::Matrix{Float64})::Vector{Matrix{Float64}}
@@ -54,21 +53,21 @@ function J(
     x✶::Vector{Float64},
     x_b::Vector{Float64},
     B✶::Matrix{Float64},
+    ts::Vector{Float64},
     y_o::Matrix{Float64},
     H::Vector{Matrix{Float64}},
-    M::Vector{Matrix{Float64}},
     R::Vector{Matrix{Float64}})::Float64
-    @assert length(H) == length(M)
-    @assert length(M) == length(R)
+    @assert length(H) == length(R)
     @assert length(R) == size(y_o, 1)
-    n = length(M)
+    n = length(R)
+    xs, _ = traj(x✶, ts)
     db = x_b - x✶
     J1 = db' * inv(B✶) * db
     @assert all(!, isnan.(J1))
     J2 = 0.0
     for i = 1:n
-        @inbounds dy = replace(y -> isnan(y) ? 0.0 : y, y_o[i, :]) - H[i] * M[i] * x✶
-        @inbounds J2 += (dy'*inv(R[i])*dy)[1]
+        @inbounds dy = replace(y -> isnan(y) ? 0.0 : y, y_o[i, :]) - H[i] * xs[i]
+        @inbounds J2 += dy' * inv(R[i]) * dy
         @assert all(!, isnan.(J2)) "j2 nan in loop $i"
     end
     0.5 * J1 + 0.5 * J2
@@ -80,23 +79,22 @@ function J_grad!(
     x✶::Vector{Float64},
     x_b::Vector{Float64},
     B✶::Matrix{Float64},
+    ts::Vector{Float64},
     y_o::Matrix{Float64},
     H::Vector{Matrix{Float64}},
-    M::Vector{Matrix{Float64}},
     R::Vector{Matrix{Float64}})
-    n = length(M)
+    n = length(R)
+    xs, M = traj(x✶, ts)
     Jg1 = inv(B✶) * (x✶ - x_b)
     @assert all(!, isnan.(Jg1))
-    @inbounds s[:] = Jg1
 
     Jg2 = zeros(size(Jg1))
     for i = 1:n
-        @inbounds dgy = replace(y -> isnan(y) ? 0.0 : y, y_o[i, :]) - H[i] * M[i] * x✶
-        @inbounds Jg2 += M[i]' * H[i]' * inv(R[i]) * dgy
+        @inbounds dgy = replace(y -> isnan(y) ? 0.0 : y, y_o[i, :]) - H[i] * xs[i]
+        @inbounds Jg2 += transpose(M[i]) * transpose(H[i]) * inv(R[i]) * dgy
         @assert all(!, isnan.(Jg2))
     end
-    @inbounds s[:] -= Jg2
-    @assert all(!, isnan.(s))
+    @inbounds s[:] = Jg1 - Jg2
 end
 
 # jacobian of lorenz96
@@ -110,9 +108,9 @@ function jac_lorenz(x::Vector{Float64})::Matrix{Float64}
     jac = zeros(len, len)
 
     for i = 1:len
-        ip1 = (i+1+lenm)%len+1
-        im1 = (i-1+lenm)%len+1
-        im2 = (i-2+lenm)%len+1
+        ip1 = (i + 1 + lenm) % len + 1
+        im1 = (i - 1 + lenm) % len + 1
+        im2 = (i - 2 + lenm) % len + 1
         @inbounds jac[i, i] = -1
         @inbounds jac[i, ip1] = x[im1]
         @inbounds jac[i, im1] = x[ip1] - x[im2]
@@ -121,39 +119,43 @@ function jac_lorenz(x::Vector{Float64})::Matrix{Float64}
     jac
 end
 
-function traj(x✶::Vector{Float64}, times::Vector{Float64})::Vector{Matrix{Float64}}
+function traj(x✶::Vector{Float64}, times::Vector{Float64})::Tuple{Vector{Vector},Vector{Matrix{Float64}}}
     # some missing time step
     # assumption of constant dU might fail
     nw = length(times) - 1
     nt = length(times)
     # this assertion should not exist
     @assert nw != 0
-    # xs = Vector{Vector}(undef, nt)
-    # @inbounds xs[1] = x✶
     ms = Vector{Matrix}(undef, nt)
     @inbounds ms[1] = Matrix(1.0I, N, N)
+    xs = Vector{Vector}(undef, nt)
+    @inbounds xs[1] = x✶
     dU = diff(times)
     fine_step = 100
-    xt = x✶;
+    xt = x✶
 
     for i = 1:nw
-        ddU = dU[i] / fine_step;
-        ms[i+1] = ms[i];
-        for _ = 1:fine_step
-            L = I + ddU * jac_lorenz(xt);
-            xt = L * xt;
-            ms[i+1] = L * ms[i+1];
+        @inbounds ms[i+1] = ms[i]
+        if dU[i] > 1e-12
+            @inbounds ddU = dU[i] / fine_step
+            for _ = 1:fine_step
+                L = I + ddU * jac_lorenz(xt)
+                xt += ddU * lorenz96(xt, Missing, Missing)
+                @inbounds ms[i+1] = L * ms[i+1]
+            end
         end
+        @inbounds xs[i+1] = xt
     end
 
-    ms[2:end]
+    xs[2:end], ms[2:end]
 end
 
-tbias = 0.5 * dT
-ua = 0
+tbias = 1.0 * dT
+ibias = convert(Integer, cld(tbias, dT))
+ua = 1
 ue = length(y_o_time)
 
-for tt = 1:nT
+for tt = 1:nT-ibias
     tts = tt - 1
     tti = tt + 1
     Ts = tts * dT
@@ -162,12 +164,12 @@ for tt = 1:nT
     # assimilation window from Ts to Ta
     global us = ua + 1
     for i = us:ue
+        global ua = i
         if abs(y_o_time[i] - Wa) < dT / 100.0
             break
         elseif Wa < y_o_time[i]
             break
         end
-        global ua = i
     end
     println("Cycle = ", tt, ", Ts = ", round(Ts; digits = 3), ", Ta = ", round(Ta; digits = 3))
 
@@ -183,8 +185,8 @@ for tt = 1:nT
     #--------------
 
     # background
-    x_b = x_b_save[tt, :]
-    x_b_time = Ts
+    x_b = sol[end]
+    x_b_time = Ta
 
     # observation
     y_o = y_o_data[us:ua, :]
@@ -193,16 +195,15 @@ for tt = 1:nT
 
     # analysis scheme (4dvar)
     traj_time = [x_b_time; y_o_time[us:ua]]
-    M = traj(x_b, traj_time)
 
-    opt = optimize(x -> J(x, x_b, B_init, y_o, h_o, M, r_o),
-        (s, x) -> J_grad!(s, x, x_b, B_init, y_o, h_o, M, r_o),
+    opt = optimize(x -> J(x, x_b, B_init, traj_time, y_o, h_o, r_o),
+        (s, x) -> J_grad!(s, x, x_b, B_init, traj_time, y_o, h_o, r_o),
         x_b,
         method = ConjugateGradient(),
         g_tol = 1e-12,
         iterations = 100
     )
-    @show opt
+    # @show opt
     @assert Optim.converged(opt)
 
     x_a = opt.minimizer

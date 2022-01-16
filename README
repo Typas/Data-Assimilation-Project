@@ -38,6 +38,7 @@ Lorenz 96 model
 - 20 observation, average distributed
 
 ### Synchronous Observation
+- all observation sync between constant time interval
 
 ### Asynchronous Observation
 - different observation station with different time

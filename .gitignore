@@ -9,6 +9,10 @@ build
 htmlcov
 
 __pycache__/
+data/
+report/
+plots/
+da-julia.so
 
 
 # Added by cargo

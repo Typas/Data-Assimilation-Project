@@ -1,4 +1,8 @@
-# Initialization
+# Data Assimilation Project
+
+# Usage
+
+## Initialization
 1. install Python
 2. install Rust
 3. install Julia
@@ -9,32 +13,39 @@
 8. `$cargo run --release`
 9. choose one of `x_a_init_<tur>.txt` as `x_a_init.txt`
 
-# NMC production
+## NMC production
 1. `$bash y_o_full.sh`
 2. `$bash da.sh oi-nmc`
 
-# Experiments
-1. use `$bash y_o_<exp>.sh` to set observation
-2. run assimilation with `$bash runda.sh`
+## Experiments
+1. use `$bash sh/y_o_<exp>.sh` to set observation
+2. run assimilation with `$bash sh/runda.sh`
 3. plot result with `python3 python/plot.py`
 
-# model
+# Abstract
+
+## Model
 Lorenz 96 model
 
-# DA schemes
+## DA schemes
 - OI
 - 3DVar
 - 4DVar
 
-# experiment
-## setup
+## Experiment
+
+### Basic Setup
 - 20 observation, average distributed
-## async observation
+
+### Synchronous Observation
+
+### Asynchronous Observation
 - different observation station with different time
 - compare with sync observation
-## missing observation
+
+### Abnormal Observation
 - randomly missing for a long time
 - randomly producing fake data for a long time
-### quality control filter
-- percentage of filtered error
-- percentage of discarded normal
+
+### Add-one Observation
+- contains missing 20 observation of basic setup, but only one data
